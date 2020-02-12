@@ -1,6 +1,8 @@
+
 def accuracy(y_hat, y):
     """
     Function to calculate the accuracy
+
     Inputs:
     > y_hat: pd.Series of predictions
     > y: pd.Series of ground truth
@@ -13,12 +15,17 @@ def accuracy(y_hat, y):
     ensure that the function does not fail in corner cases.
     """
     assert(y_hat.size == y.size)
-    # TODO: Write here
-    pass
+    acc = 0
+    for i in range(y_hat.size):
+        if y_hat[i]==y[i]:
+            acc+=1
+    acc = acc/y.size
+    return acc
 
 def precision(y_hat, y, cls):
     """
     Function to calculate the precision
+
     Inputs:
     > y_hat: pd.Series of predictions
     > y: pd.Series of ground truth
@@ -26,11 +33,23 @@ def precision(y_hat, y, cls):
     Output:
     > Returns the precision as float
     """
-    pass
+    q=0
+    w=0
+    y = list(y)
+    y_hat = list(y_hat)
+
+    for i in range(len(y)):
+        if y_hat[i]==y[i] and y_hat[i]==cls:
+            q+=1
+        if y_hat[i]==cls:
+            w+=1
+    pre = q/max(w,1)
+    return pre
 
 def recall(y_hat, y, cls):
     """
     Function to calculate the recall
+
     Inputs:
     > y_hat: pd.Series of predictions
     > y: pd.Series of ground truth
@@ -38,7 +57,20 @@ def recall(y_hat, y, cls):
     Output:
     > Returns the recall as float
     """
-    pass
+    e=0
+    r=0
+    y = list(y)
+    y_hat = list(y_hat)
+    for i in range(len(y)):
+        if y_hat[i]==y[i] and y[i]==cls:
+            e+=1
+        if y[i]==cls:
+            r+=1
+    try:
+        rec = e/r
+    except:
+        rec=0
+    return rec
 
 def rmse(y_hat, y):
     """
@@ -49,8 +81,14 @@ def rmse(y_hat, y):
     Output:
     > Returns the rmse as float
     """
-
-    pass
+    rse=0
+    y = list(y)
+    y_hat = list(y_hat)
+    for i in range(len(y)):
+        rse+=(y[i] - y_hat[i])**2
+    rse = rse/len(y)
+    rse = rse**0.5
+    return rse
 
 def mae(y_hat, y):
     """
@@ -61,4 +99,10 @@ def mae(y_hat, y):
     Output:
     > Returns the mae as float
     """
-    pass
+    me=0
+    y = list(y)
+    y_hat = list(y_hat)
+    for i in range(len(y)):
+        me+=abs(y_hat[i] - y[i])
+    me = me/len(y)
+    return me

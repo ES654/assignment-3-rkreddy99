@@ -12,7 +12,7 @@ class LinearRegression():
         self.coef_ = None #Replace with numpy array or pandas series of coefficients learned using using the fit methods
 
         pass
-
+    
     def fit_non_vectorised(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
         Function to train model using non-vectorised gradient descent.
@@ -27,8 +27,45 @@ class LinearRegression():
 
         :return None
         '''
+        assert (batch_size <= len(X.index))
+        Xd = X.copy()
+        if(self.fit_intercept == True):
+            Xd.insert(0, "Intercept", pd.Series([1]*len(Xd.index)))
+        col = list(Xd.columns)
+        yd = y.copy()
 
-        pass
+        theta = np.array([1.0]*len(list(Xd.columns)))
+        count = 0
+
+        for i in range(n_iter):
+            x = pd.DataFrame(columns=col)
+            y_dash = pd.Series([])
+            for j in range(batch_size):
+                x.loc[j] = Xd.loc[count%len(Xd.index)]
+                y_dash[j] = yd[count%len(Xd.index)]
+                count += 1
+            if (lr_type == 'inverse'):
+                lr = lr/(i+1)
+            gradient = []
+            for ii in range(len(col)):
+                cols = [t for t in range(len(col))]
+                x.columns = cols
+                der = 0
+                # print(x)
+                for jj in range(batch_size):
+                    der += 2*(self.error(x.loc[jj], y_dash[jj], theta))*(-1*x.loc[jj][ii])
+                der = der/batch_size
+                gradient.append(der)
+            for k in range(len(theta)):
+                theta[k] -= (lr * gradient[k])
+        self.coef_ = pd.Series(theta)
+
+    def error(self, x_single, y_single, theta):
+        y_hat = 0
+        for i in range(x_single.size):
+            y_hat += x_single[i] * theta[i]
+        return (y_single - y_hat)
+
 
     def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
@@ -45,7 +82,29 @@ class LinearRegression():
         :return None
         '''
 
-        pass
+        assert (batch_size <= len(X.index))
+        Xd = X.copy()
+        yd = y.copy()
+        if(self.fit_intercept == True):
+            Xd.insert(0, "Intercept", pd.Series([1]*len(Xd.index)))
+        col = list(Xd.columns)
+        theta = np.array([1.0]*len(col))
+        count = 0
+        for i in range(n_iter):
+            x = pd.DataFrame(columns=list(col))
+            y_dash = pd.Series([])
+            for j in range(batch_size):
+                x.loc[j] = Xd.loc[count%len(Xd.index)]
+                y_dash[j] = yd[count%len(Xd.index)]
+                count += 1
+            if (lr_type == 'inverse'):
+                lr = lr/(i+1)
+            Xn = x.to_numpy()
+            Xt = Xn.transpose()
+            yn = y_dash.to_numpy()
+            theta = theta - (Xt @ ((Xn @ theta) - yn))*(lr/batch_size)
+        print(theta)
+        self.coef_ = pd.Series(theta)
 
     def fit_autograd(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
@@ -74,8 +133,13 @@ class LinearRegression():
 
         :return None
         '''
-
-        pass
+        X = X.to_numpy()
+        if self.fit_intercept:
+            a = np.ones((X.shape[0],1))
+            X = np.concatenate((a,X), axis=1)
+        inv = np.linalg.pinv(X.T @ X)
+        self.theta = inv @ X.T @ y
+        return self.theta
 
     def predict(self, X):
         '''
@@ -85,8 +149,12 @@ class LinearRegression():
 
         :return: y: pd.Series with rows corresponding to output variable. The output variable in a row is the prediction for sample in corresponding row in X.
         '''
-
-        pass
+        X = X.to_numpy()
+        if self.fit_intercept:
+            a = np.ones((X.shape[0],1))
+            X = np.concatenate((a,X), axis=1)
+        self.prediction = X @ self.coef_
+        return self.prediction 
 
     def plot_surface(self, X, y, t_0, t_1):
         """
