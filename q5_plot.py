@@ -19,10 +19,9 @@ for i in range(1,2):
     # print(X[1].loc[23])
     LR = LinearRegression(fit_intercept=False)
     LR.fit_non_vectorised(X, y, batch_size=6) # here you can use fit_non_vectorised / fit_autograd methods
-    # print(LR.coef_)
     y_hat = LR.predict(X)
-    # print(np.array(LR.thetas))
     LR.plot_surface(np.array(X[1]),y)
+    LR.plot_line_fit(np.array(X[1]), np.array(y), 3,4)
     print("--------------------------------------------------")
     # print("fit_intercept : "+str(fit_intercept))
     # print("degree : "+str(i))

@@ -220,8 +220,8 @@ class LinearRegression():
 
         :return matplotlib figure plotting RSS
         """
-        theta0 = np.linspace(-5,5,50)
-        theta1 = np.linspace(-5,5,50)
+        theta0 = np.linspace(-5,10,100)
+        theta1 = np.linspace(-5,10,100)
         error = []
         r = y.size
         for i in range(len(theta0)):
@@ -231,29 +231,28 @@ class LinearRegression():
                 t1 = theta1[j]
                 err=0
                 for k in range(r):
-                    # print(y[k], t0+(t1*X[k]))
                     err+=float((y[k] - (t0+(t1*X[k])))**2)
                 e.append(err/r)
             error.append(e)
         error = np.array(error)
-        # print(error)
-        theta_0 = np.outer(theta1, np.ones(50))
+        theta_0 = np.outer(theta1, np.ones(100))
         theta_1 = theta_0.T
         fig = plt.figure()
         plt.ion()
-        ax = plt.axes(projection = '3d')
+        # ax = plt.axes(projection = '3d')
         ax = fig.add_subplot(111, projection = '3d')
         ax.set_title('RSS')
         ax.set_xlabel(r'$\Theta_{0}$')
         ax.set_ylabel(r'$\Theta_{1}$')
+        ax.set_zlabel('error')
         ax.plot_surface(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
         thetas = np.array(self.thetas)
-        # print(self.thetas)
         er = 0
         for i in range(r):
             er+= float((y[i] - (t_0+(t_1*X[i])))**2)
         er = er/r
-        eror = np.array([er])
+        eror,t0,t1 = np.array([er]), np.array([t_0]), np.array([t_1])
+        ax.scatter(t0,t1,eror[0:1],c='r',s=40)
         sc = ax.scatter(thetas[0:1, 0], thetas[0:1, 1], eror[0:1])
         fig.show()
         tet = []
@@ -261,26 +260,27 @@ class LinearRegression():
         for i in range(10):
             tet.append(self.thetas[int(ind[i])])
         teta = np.array(tet)
-        ero = []
-        for i in range(10):
-            plt.pause(0.5)
-            er=0
-            for k in range(r):
-                er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
-            er = er/r
-            ero.append(er)
-            eror = np.array(ero)
-            sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
-            plt.draw()
-
+        for _ in range(2):
+            ero = []
+            for i in range(10):
+                plt.pause(0.05)
+                er=0
+                for k in range(r):
+                    er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
+                er = er/r
+                ero.append(er)
+                eror = np.array(ero)
+                sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
+                plt.draw()
+        # plt.pause(5)
 
     def plot_line_fit(self, X, y, t_0, t_1):
         """
         Function to plot fit of the line (y vs. X plot) based on chosen value of t_0, t_1. Plot must
         indicate t_0 and t_1 as the title.
 
-        :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
-        :param y: pd.Series with rows corresponding to output (shape: (n_samples,))
+        :param X: numpy array with rows as samples and columns as features (shape: (n_samples, n_features))
+        :param y: numpy array with rows corresponding to output (shape: (n_samples,))
         :param t_0: Value of theta_0 for which to plot the fit
         :param t_1: Value of theta_1 for which to plot the fit
 
@@ -288,12 +288,16 @@ class LinearRegression():
         """
 
         fig = plt.figure()
-        x = X.to_numpy()
-        p = np.linspace(min(x)-1,max(x)+1,(max(x)-min(x))*10)
+        ax = fig.add_subplot(111)
+        print(min(X)-1,max(X)+1,(max(X)-min(X))*10)
+        p = np.linspace(min(X)-1,max(X)+1,int((max(X)-min(X))*10))
         l = t_0 + t_1*p
-        plt.plot(p,l,'-r', label='y=t_0+t_1*x)')
+        plt.plot(p,l,'-r', label='y = '+str(t_0)+' + '+str(t_1)+'*X')
         plt.legend(loc='upper left')
-        ax.scatter(x,y)
+        ax.scatter(X,y)
+        ax.set_title('y vs X plot, t_0: '+str(t_0)+', t_1: '+str(t_1))
+        ax.set_xlabel('X')
+        ax.set_ylabel('y')
         plt.show()
         pass
 
@@ -303,7 +307,7 @@ class LinearRegression():
         theta_0 and theta_1 over a range. Indicates the RSS based on given value of t_0 and t_1, and the
         direction of gradient steps. Uses self.coef_ to calculate RSS.
 
-        :param X: pd.DataFrame with rows as samples and columns as featuresauto (shape: (n_samples, n_features))
+        :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
         :param y: pd.Series with rows corresponding to output (shape: (n_samples,))
         :param t_0: Value of theta_0 for which to plot the fit
         :param t_1: Value of theta_1 for which to plot the fit
