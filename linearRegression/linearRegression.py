@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import autograd.numpy as np1
 from autograd import grad
 from mpl_toolkits import mplot3d
-
+from mpl_toolkits.mplot3d import Axes3D
+import time
 class LinearRegression():
     def __init__(self, fit_intercept=True):
         '''
@@ -207,7 +208,7 @@ class LinearRegression():
         self.prediction = X @ self.coef_
         return self.prediction 
 
-    def plot_surface(self, X, y, t_0, t_1):
+    def plot_surface(self, X, y, t_0=1, t_1=1):
         """
         Function to plot RSS (residual sum of squares) in 3D. A surface plot is obtained by varying
         theta_0 and theta_1 over a range. Indicates the RSS based on given value of t_0 and t_1 by a
@@ -219,37 +220,59 @@ class LinearRegression():
 
         :return matplotlib figure plotting RSS
         """
-        theta0 = np.linspace(-5,5,30)
-        theta1 = np.linspace(-5,5,30)
+        theta0 = np.linspace(-5,5,50)
+        theta1 = np.linspace(-5,5,50)
         error = []
         r = y.size
         for i in range(len(theta0)):
             t0 = theta0[i]
             e = []
-            for j in range(theta1):
+            for j in range(len(theta1)):
                 t1 = theta1[j]
                 err=0
                 for k in range(r):
-                    err+=float((y[j] - (t0+(t1*X.loc[k])))**2)
+                    # print(y[k], t0+(t1*X[k]))
+                    err+=float((y[k] - (t0+(t1*X[k])))**2)
                 e.append(err/r)
             error.append(e)
         error = np.array(error)
-
-        theta_0 = np.outer(theta1, 30)
+        # print(error)
+        theta_0 = np.outer(theta1, np.ones(50))
         theta_1 = theta_0.T
         fig = plt.figure()
-        plt.title('Error')
-        plt.xlabel(r'$\Theta_{0}$')
-        plt.ylabel(r'$\Theta_{1}$')
+        plt.ion()
+        ax = plt.axes(projection = '3d')
         ax = fig.add_subplot(111, projection = '3d')
+        ax.set_title('RSS')
+        ax.set_xlabel(r'$\Theta_{0}$')
+        ax.set_ylabel(r'$\Theta_{1}$')
         ax.plot_surface(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
-
+        thetas = np.array(self.thetas)
+        # print(self.thetas)
         er = 0
         for i in range(r):
-            er+= float((y[j] - (t_0+(t_1*X.loc[k])))**2)
+            er+= float((y[i] - (t_0+(t_1*X[i])))**2)
         er = er/r
-        ax.scatter(t_0, t_1, er, c = 'r', s='20')
-        plt.show()
+        eror = np.array([er])
+        sc = ax.scatter(thetas[0:1, 0], thetas[0:1, 1], eror[0:1])
+        fig.show()
+        tet = []
+        ind = np.linspace(0, r-1, 10)
+        for i in range(10):
+            tet.append(self.thetas[int(ind[i])])
+        teta = np.array(tet)
+        ero = []
+        for i in range(10):
+            plt.pause(0.5)
+            er=0
+            for k in range(r):
+                er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
+            er = er/r
+            ero.append(er)
+            eror = np.array(ero)
+            sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
+            plt.draw()
+
 
     def plot_line_fit(self, X, y, t_0, t_1):
         """
@@ -272,6 +295,7 @@ class LinearRegression():
         plt.legend(loc='upper left')
         ax.scatter(x,y)
         plt.show()
+        pass
 
     def plot_contour(self, X, y, t_0, t_1):
         """
@@ -286,5 +310,5 @@ class LinearRegression():
 
         :return matplotlib figure plotting the contour
         """
-        
+
         pass
