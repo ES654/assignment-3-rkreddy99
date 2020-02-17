@@ -31,16 +31,14 @@ class PolynomialFeatures():
         Outputs:
         returns (np.array) Tranformed dataset.
         """
-        powers = []
-        X = list(X)
-        if self.include_bias:
-            powers.append(1)
-        
-        for j in range(1,self.degree+1):
-            for i in range(len(X)):
-                powers.append(X[i]**j)
-            
-        self.feature = powers
+        col = [i for i in range(1,self.degree+1)]
+        if self.include_bias==True:
+            col = [0] + col
+        x = pd.DataFrame(columns=col)
+        for i in range(len(X)):
+            x.loc[i] = [X[i]**j for j in col]            
+        self.feature = x
+        return self.feature
     
         
         

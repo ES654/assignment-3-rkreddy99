@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 # Import Autograd modules here
+import autograd.numpy as np1
+from autograd import grad
+from mpl_toolkits import mplot3d
 
 class LinearRegression():
     def __init__(self, fit_intercept=True):
@@ -11,7 +14,6 @@ class LinearRegression():
         self.fit_intercept = fit_intercept
         self.coef_ = None #Replace with numpy array or pandas series of coefficients learned using using the fit methods
 
-        pass
     
     def fit_non_vectorised(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
@@ -29,45 +31,57 @@ class LinearRegression():
         '''
         assert (batch_size <= len(X.index))
         Xd = X.copy()
+        rows = len(Xd.index)
         if(self.fit_intercept == True):
-            Xd.insert(0, "Intercept", pd.Series([1]*len(Xd.index)))
+            Xd.insert(0, "Intercept", pd.Series([1]*rows))
         col = list(Xd.columns)
         yd = y.copy()
 
         theta = np.array([1.0]*len(list(Xd.columns)))
-        count = 0
-
+        r = 0
+        # self.thetas = []
+        coef = []
         for i in range(n_iter):
-            x = pd.DataFrame(columns=col)
-            y_dash = pd.Series([])
+            # self.thetas.append(theta)
+            # print(theta)
+            coef.append(list(theta))
+            # print(coef)
+            xx = pd.DataFrame(columns=col)
+            yy = pd.Series([])
             for j in range(batch_size):
-                x.loc[j] = Xd.loc[count%len(Xd.index)]
-                y_dash[j] = yd[count%len(Xd.index)]
-                count += 1
-            if (lr_type == 'inverse'):
-                lr = lr/(i+1)
+                xx.loc[j] = Xd.loc[r%rows]
+                yy[j] = yd[r%rows]
+                r += 1
+            if (lr_type == 'inverse') and i!=0:
+                lr = lr*i/(i+1)
             gradient = []
             for ii in range(len(col)):
                 cols = [t for t in range(len(col))]
-                x.columns = cols
+                xx.columns = cols
                 der = 0
-                # print(x)
+                # print(xx)
                 for jj in range(batch_size):
-                    der += 2*(self.error(x.loc[jj], y_dash[jj], theta))*(-1*x.loc[jj][ii])
+                    der += 2*(yy[jj] - (np.array(xx.loc[jj]) @ np.array(theta)))*(-1*xx.loc[jj][ii]) #(self.error(xx.loc[jj], yy[jj], theta))
                 der = der/batch_size
                 gradient.append(der)
             for k in range(len(theta)):
                 theta[k] -= (lr * gradient[k])
+            # print(gradient)
+        # print(self.thetas)
+        # print(coef)
+        self.thetas = coef
+        # print(self.thetas)
         self.coef_ = pd.Series(theta)
+        return self.coef_
 
-    def error(self, x_single, y_single, theta):
-        y_hat = 0
-        for i in range(x_single.size):
-            y_hat += x_single[i] * theta[i]
-        return (y_single - y_hat)
+    # def error(self, x_single, y_single, theta):
+    #     y_hat = 0
+    #     for i in range(x_single.size):
+    #         y_hat += x_single[i] * theta[i]
+    #     return (y_single - y_hat)
 
 
-    def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=0.01, lr_type='constant'):
+    def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=1, lr_type='constant'):
         '''
         Function to train model using vectorised gradient descent.
 
@@ -85,27 +99,30 @@ class LinearRegression():
         assert (batch_size <= len(X.index))
         Xd = X.copy()
         yd = y.copy()
+        rows = len(Xd.index)
         if(self.fit_intercept == True):
-            Xd.insert(0, "Intercept", pd.Series([1]*len(Xd.index)))
+            Xd.insert(0, "Intercept", pd.Series([1]*rows))
         col = list(Xd.columns)
         theta = np.array([1.0]*len(col))
-        count = 0
+        r = 0
+        coef = []
         for i in range(n_iter):
-            x = pd.DataFrame(columns=list(col))
-            y_dash = pd.Series([])
+            coef.append(list(theta))
+            xx = pd.DataFrame(columns=list(col))
+            yy = pd.Series([])
             for j in range(batch_size):
-                x.loc[j] = Xd.loc[count%len(Xd.index)]
-                y_dash[j] = yd[count%len(Xd.index)]
-                count += 1
-            if (lr_type == 'inverse'):
-                lr = lr/(i+1)
-            Xn = x.to_numpy()
+                xx.loc[j] = Xd.loc[r%rows]
+                yy[j] = yd[r%rows]
+                r += 1
+            if (lr_type == 'inverse') and i!=0:
+                lr = lr*i/(i+1)
+            Xn = xx.to_numpy()
             Xt = Xn.transpose()
-            yn = y_dash.to_numpy()
+            yn = yy.to_numpy()
             theta = theta - (Xt @ ((Xn @ theta) - yn))*(lr/batch_size)
-        print(theta)
+        self.thetas = coef
         self.coef_ = pd.Series(theta)
-
+    
     def fit_autograd(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
         Function to train model using gradient descent with Autograd to compute the gradients.
@@ -121,8 +138,42 @@ class LinearRegression():
 
         :return None
         '''
+        assert (batch_size <= len(X.index))
+        rows = len(X.index)
+        lr = lr
+        Xd = X.copy()
+        yd = y.copy()
+        if(self.fit_intercept==True):
+            Xd.insert(0,"Intercept",pd.Series([1]*rows))
+        col = list(Xd.columns)
+        theta = np.array([1.0]*len(col))
+        r = 0
+        coef = []
+        for i in range(n_iter):
+            coef.append(list(theta))
+            xx = pd.DataFrame(columns=col)
+            yy = pd.Series([])
+            for j in range(batch_size):
+                xx.loc[j] = list(Xd.loc[r%rows])
+                yy[j] = yd[r%len(Xd.index)]
+                r += 1
+            self.xd = xx.to_numpy()
+            self.ydd = yy.to_numpy()
+            if (lr_type == 'inverse') and i!=0:
+                lr = lr*i/(i+1)
+            gradd = grad(self.error)
+            gradient = gradd(theta)
+            theta -= gradient * lr
+        self.thetas = coef
+        self.coef_ = pd.Series(theta)
+            
 
-        pass
+    def error(self, theta):
+        y_hat = self.xd.dot(theta)
+        err = 0
+        for i in range(len(self.ydd)):
+            err += (y_hat[i] - self.ydd[i])**2
+        return (err/(len(self.ydd)))
 
     def fit_normal(self, X, y):
         '''
@@ -138,8 +189,8 @@ class LinearRegression():
             a = np.ones((X.shape[0],1))
             X = np.concatenate((a,X), axis=1)
         inv = np.linalg.pinv(X.T @ X)
-        self.theta = inv @ X.T @ y
-        return self.theta
+        self.coef_ = inv @ X.T @ y
+        return self.coef_
 
     def predict(self, X):
         '''
@@ -168,8 +219,37 @@ class LinearRegression():
 
         :return matplotlib figure plotting RSS
         """
+        theta0 = np.linspace(-5,5,30)
+        theta1 = np.linspace(-5,5,30)
+        error = []
+        r = y.size
+        for i in range(len(theta0)):
+            t0 = theta0[i]
+            e = []
+            for j in range(theta1):
+                t1 = theta1[j]
+                err=0
+                for k in range(r):
+                    err+=float((y[j] - (t0+(t1*X.loc[k])))**2)
+                e.append(err/r)
+            error.append(e)
+        error = np.array(error)
 
-        pass
+        theta_0 = np.outer(theta1, 30)
+        theta_1 = theta_0.T
+        fig = plt.figure()
+        plt.title('Error')
+        plt.xlabel(r'$\Theta_{0}$')
+        plt.ylabel(r'$\Theta_{1}$')
+        ax = fig.add_subplot(111, projection = '3d')
+        ax.plot_surface(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
+
+        er = 0
+        for i in range(r):
+            er+= float((y[j] - (t_0+(t_1*X.loc[k])))**2)
+        er = er/r
+        ax.scatter(t_0, t_1, er, c = 'r', s='20')
+        plt.show()
 
     def plot_line_fit(self, X, y, t_0, t_1):
         """
@@ -184,7 +264,14 @@ class LinearRegression():
         :return matplotlib figure plotting line fit
         """
 
-        pass
+        fig = plt.figure()
+        x = X.to_numpy()
+        p = np.linspace(min(x)-1,max(x)+1,(max(x)-min(x))*10)
+        l = t_0 + t_1*p
+        plt.plot(p,l,'-r', label='y=t_0+t_1*x)')
+        plt.legend(loc='upper left')
+        ax.scatter(x,y)
+        plt.show()
 
     def plot_contour(self, X, y, t_0, t_1):
         """
@@ -192,12 +279,12 @@ class LinearRegression():
         theta_0 and theta_1 over a range. Indicates the RSS based on given value of t_0 and t_1, and the
         direction of gradient steps. Uses self.coef_ to calculate RSS.
 
-        :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
+        :param X: pd.DataFrame with rows as samples and columns as featuresauto (shape: (n_samples, n_features))
         :param y: pd.Series with rows corresponding to output (shape: (n_samples,))
         :param t_0: Value of theta_0 for which to plot the fit
         :param t_1: Value of theta_1 for which to plot the fit
 
         :return matplotlib figure plotting the contour
         """
-
+        
         pass
