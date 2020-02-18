@@ -20,11 +20,7 @@ for i in range(1,2):
     LR = LinearRegression(fit_intercept=False)
     LR.fit_non_vectorised(X, y, batch_size=6) # here you can use fit_non_vectorised / fit_autograd methods
     y_hat = LR.predict(X)
-    LR.plot_surface(np.array(X[1]),y)
+    # LR.plot_surface(np.array(X[1]),y)
+    
     LR.plot_line_fit(np.array(X[1]), np.array(y), 3,4)
     print("--------------------------------------------------")
-    # print("fit_intercept : "+str(fit_intercept))
-    # print("degree : "+str(i))
-    # print("--------------------------------------------------")
-    # print('RMSE: ', rmse(y_hat, y))
-    # print('MAE: ', mae(y_hat, y))

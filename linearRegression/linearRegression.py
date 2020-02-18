@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 # Import Autograd modules here
+import imageio
 import autograd.numpy as np1
 from autograd import grad
 from mpl_toolkits import mplot3d
@@ -254,25 +255,45 @@ class LinearRegression():
         eror,t0,t1 = np.array([er]), np.array([t_0]), np.array([t_1])
         ax.scatter(t0,t1,eror[0:1],c='r',s=40)
         sc = ax.scatter(thetas[0:1, 0], thetas[0:1, 1], eror[0:1])
-        fig.show()
+        # fig.show()
         tet = []
         ind = np.linspace(0, r-1, 10)
         for i in range(10):
             tet.append(self.thetas[int(ind[i])])
         teta = np.array(tet)
-        for _ in range(2):
-            ero = []
-            for i in range(10):
-                plt.pause(0.05)
-                er=0
-                for k in range(r):
-                    er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
-                er = er/r
-                ero.append(er)
-                eror = np.array(ero)
-                sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
-                plt.draw()
-        # plt.pause(5)
+        # self.teta = teta
+        # for _ in range(1):
+        #     ero = []
+        #     for i in range(10):
+        #         plt.pause(0.05)
+        #         er=0
+        #         for k in range(r):
+        #             er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
+        #         er = er/r
+        #         ero.append(er)
+        #         eror = np.array(ero)
+        #         sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
+        #         plt.draw()
+        ero = []
+        img = []
+        for i in range(10):
+            plt.pause(0.05)
+            er=0
+            for k in range(r):
+                er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
+            er = er/r
+            ero.append(er)
+            eror = np.array(ero)
+            ax.scatter(teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1],c='r')
+            fig.canvas.draw()   
+            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            img.append(image)
+        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        imageio.mimsave('./contour_plot.gif', img, fps=1)
+
+    #     # plt.pause(5)
+        
 
     def plot_line_fit(self, X, y, t_0, t_1):
         """
@@ -287,19 +308,39 @@ class LinearRegression():
         :return matplotlib figure plotting line fit
         """
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        print(min(X)-1,max(X)+1,(max(X)-min(X))*10)
+        tet = []
+        img = []
+        r=y.size
+        ind = np.linspace(0, r-1, 10)
+        for i in range(10):
+            tet.append(self.thetas[int(ind[i])])
+        teta = np.array(tet)
         p = np.linspace(min(X)-1,max(X)+1,int((max(X)-min(X))*10))
-        l = t_0 + t_1*p
-        plt.plot(p,l,'-r', label='y = '+str(t_0)+' + '+str(t_1)+'*X')
-        plt.legend(loc='upper left')
-        ax.scatter(X,y)
-        ax.set_title('y vs X plot, t_0: '+str(t_0)+', t_1: '+str(t_1))
-        ax.set_xlabel('X')
-        ax.set_ylabel('y')
-        plt.show()
-        pass
+        for i in range(10):
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.scatter(X,y)
+            ax.set_ylim(0,35.5)
+            plt.pause(0.05)
+            ax.plot(p, teta[i:i+1,0]+(teta[i:i+1,1]*p), c='r')
+            plt.draw()
+            fig.canvas.draw()   
+            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            img.append(image)
+        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        imageio.mimsave('./line_fit.gif', img, fps=1)
+
+        if __name__ == '__main__':
+            # FuncAnimation will call the 'update' function for each frame; here
+            # animating over 10 frames, with an interval of 200ms between frames.
+            anim = FuncAnimation(fig, update, frames=np.arange(0, 10), interval=200)
+            if len(sys.argv) > 1 and sys.argv[1] == 'save':
+                anim.save('line.gif', dpi=80, writer='imagemagick')
+            else:
+                # plt.show() will just loop the animation forever.
+                plt.show()
+                
 
     def plot_contour(self, X, y, t_0, t_1):
         """
