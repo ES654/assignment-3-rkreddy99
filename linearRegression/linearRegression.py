@@ -19,6 +19,7 @@ class LinearRegression():
     
     def fit_non_vectorised(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
+
         Function to train model using non-vectorised gradient descent.
 
         :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
@@ -83,7 +84,7 @@ class LinearRegression():
     #     return (y_single - y_hat)
 
 
-    def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=1, lr_type='constant'):
+    def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
         Function to train model using vectorised gradient descent.
 
@@ -123,6 +124,7 @@ class LinearRegression():
             yn = yy.to_numpy()
             theta = theta - (Xt @ ((Xn @ theta) - yn))*(lr/batch_size)
         self.thetas = coef
+        # print(coef)
         self.coef_ = pd.Series(theta)
     
     def fit_autograd(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
