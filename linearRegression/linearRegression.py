@@ -221,8 +221,108 @@ class LinearRegression():
 
         :return matplotlib figure plotting RSS
         """
-        theta0 = np.linspace(-5,10,100)
-        theta1 = np.linspace(-5,10,100)
+        theta0 = np.linspace(-2,8,100)
+        theta1 = np.linspace(-2,8,100)
+        error = []
+        r = y.size
+        for i in range(len(theta0)):
+            t0 = theta0[i]
+            e = []
+            for j in range(len(theta1)):
+                t1 = theta1[j]
+                err=0
+                for k in range(r):
+                    err+=float((y[k] - (t0+(t1*X[k])))**2)
+                e.append(err/r)
+            error.append(e)
+        error = np.array(error)
+        theta_0 = np.outer(theta1, np.ones(100))
+        theta_1 = theta_0.T
+        fig = plt.figure()
+        plt.ion()
+        ax = fig.add_subplot(111, projection = '3d')
+        ax.set_xlabel(r'$\Theta_{0}$')
+        ax.set_ylabel(r'$\Theta_{1}$')
+        ax.set_zlabel('error')
+        ax.plot_surface(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
+        thetas = np.array(self.thetas)
+        er = 0
+        for i in range(r):
+            er+= float((y[i] - (t_0+(t_1*X[i])))**2)
+        er = er/r
+        eror,t0,t1 = np.array([er]), np.array([t_0]), np.array([t_1])
+        ax.scatter(t0,t1,eror[0:1],c='r',s=40)
+        sc = ax.scatter(thetas[0:1, 0], thetas[0:1, 1], eror[0:1])
+        ero = []
+        img = []
+        for i in range(20):
+            # plt.pause(0.05)
+            er=0
+            ax.set_title(r'$\Theta_{0}$'+' = '+str(thetas[i+1:i+2,0]) + ', '+r'$\Theta_{0}$'+' = '+str(thetas[i+1:i+2,0]))
+            for k in range(r):
+                er+=float((y[k] - (thetas[i:i+1,0]+(thetas[i:i+1,1]*X[k])))**2)
+            er = er/r
+            ero.append(er)
+            eror = np.array(ero)
+            ax.scatter(thetas[i:i+1,0], thetas[i:i+1,1], eror[i:i+1],c='k')
+            # plt.draw()
+            fig.canvas.draw()   
+            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            img.append(image)
+        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        imageio.mimsave('./plot_surface_'+str(self.fit)+'.gif', img, fps=2)
+
+    def plot_line_fit(self, X, y, t_0, t_1):
+        """
+        Function to plot fit of the line (y vs. X plot) based on chosen value of t_0, t_1. Plot must
+        indicate t_0 and t_1 as the title.
+
+        :param X: numpy array with rows as samples and columns as features (shape: (n_samples, n_features))
+        :param y: numpy array with rows corresponding to output (shape: (n_samples,))
+        :param t_0: Value of theta_0 for which to plot the fit
+        :param t_1: Value of theta_1 for which to plot the fit
+
+        :return matplotlib figure plotting line fit
+        """
+        img = []
+        r=y.size
+        thetas = np.array(self.thetas)
+        p = np.linspace(min(X)-1,max(X)+1,int((max(X)-min(X))*10))
+        for i in range(20):
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.scatter(X,y)
+            ax.set_ylim(0,35.5)
+            ax.set_xlabel('X')
+            ax.set_ylabel('y')
+            ax.set_title('y = '+str(thetas[i:i+1,0])+ ' + ' + str(thetas[i:i+1,1])+'*x')
+            # plt.pause(0.05)
+            ax.plot(p, thetas[i:i+1,0]+(thetas[i:i+1,1]*p), c='r')
+            # plt.draw()
+            fig.canvas.draw()   
+            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            img.append(image)
+        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        imageio.mimsave('./line_fit_'+str(self.fit)+'.gif', img, fps=2)
+
+    def plot_contour(self, X, y, t_0, t_1):
+        """
+        Plots the RSS as a contour plot. A contour plot is obtained by varying
+        theta_0 and theta_1 over a range. Indicates the RSS based on given value of t_0 and t_1, and the
+        direction of gradient steps. Uses self.coef_ to calculate RSS.
+
+        :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
+        :param y: pd.Series with rows corresponding to output (shape: (n_samples,))
+        :param t_0: Value of theta_0 for which to plot the fit
+        :param t_1: Value of theta_1 for which to plot the fit
+
+        :return matplotlib figure plotting the contour
+        """
+
+        theta0 = np.linspace(-2,7.5,100)
+        theta1 = np.linspace(-2,7.5,100)
         error = []
         r = y.size
         for i in range(len(theta0)):
@@ -241,119 +341,23 @@ class LinearRegression():
         fig = plt.figure()
         plt.ion()
         # ax = plt.axes(projection = '3d')
-        ax = fig.add_subplot(111, projection = '3d')
-        ax.set_title('RSS')
+        ax = fig.add_subplot(111)
         ax.set_xlabel(r'$\Theta_{0}$')
         ax.set_ylabel(r'$\Theta_{1}$')
-        ax.set_zlabel('error')
-        ax.plot_surface(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
+        # ax.set_zlabel('error')
+        ax.contourf(theta_0, theta_1, error, cmap = 'viridis', edgecolor = 'none', alpha =0.7)
+        # plt.show()
+        # fig.colorbar(cs, ax=ax)
         thetas = np.array(self.thetas)
-        er = 0
-        for i in range(r):
-            er+= float((y[i] - (t_0+(t_1*X[i])))**2)
-        er = er/r
-        eror,t0,t1 = np.array([er]), np.array([t_0]), np.array([t_1])
-        ax.scatter(t0,t1,eror[0:1],c='r',s=40)
-        sc = ax.scatter(thetas[0:1, 0], thetas[0:1, 1], eror[0:1])
-        # fig.show()
-        tet = []
-        ind = np.linspace(0, r-1, 10)
-        for i in range(10):
-            tet.append(self.thetas[int(ind[i])])
-        teta = np.array(tet)
-        # self.teta = teta
-        # for _ in range(1):
-        #     ero = []
-        #     for i in range(10):
-        #         plt.pause(0.05)
-        #         er=0
-        #         for k in range(r):
-        #             er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
-        #         er = er/r
-        #         ero.append(er)
-        #         eror = np.array(ero)
-        #         sc._offsets3d = (teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1])
-        #         plt.draw()
-        ero = []
         img = []
-        for i in range(10):
+        for i in range(20):
             plt.pause(0.05)
-            er=0
-            for k in range(r):
-                er+=float((y[k] - (teta[i:i+1,0]+(teta[i:i+1,1]*X[k])))**2)
-            er = er/r
-            ero.append(er)
-            eror = np.array(ero)
-            ax.scatter(teta[0:i+1,0], teta[0:i+1,1], eror[0:i+1],c='r')
-            fig.canvas.draw()   
-            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-            img.append(image)
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-        imageio.mimsave('./contour_plot.gif', img, fps=1)
-
-    #     # plt.pause(5)
-        
-
-    def plot_line_fit(self, X, y, t_0, t_1):
-        """
-        Function to plot fit of the line (y vs. X plot) based on chosen value of t_0, t_1. Plot must
-        indicate t_0 and t_1 as the title.
-
-        :param X: numpy array with rows as samples and columns as features (shape: (n_samples, n_features))
-        :param y: numpy array with rows corresponding to output (shape: (n_samples,))
-        :param t_0: Value of theta_0 for which to plot the fit
-        :param t_1: Value of theta_1 for which to plot the fit
-
-        :return matplotlib figure plotting line fit
-        """
-
-        tet = []
-        img = []
-        r=y.size
-        ind = np.linspace(0, r-1, 10)
-        for i in range(10):
-            tet.append(self.thetas[int(ind[i])])
-        teta = np.array(tet)
-        p = np.linspace(min(X)-1,max(X)+1,int((max(X)-min(X))*10))
-        for i in range(10):
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            ax.scatter(X,y)
-            ax.set_ylim(0,35.5)
-            plt.pause(0.05)
-            ax.plot(p, teta[i:i+1,0]+(teta[i:i+1,1]*p), c='r')
+            ax.set_title(r'$\Theta_{0}$'+' = '+str(thetas[i+1:i+2,0]) + ', '+r'$\Theta_{0}$'+' = '+str(thetas[i+1:i+2,0]))
+            ax.annotate("", xy=(thetas[i+1:i+2,0], thetas[i+1:i+2,1]), xytext=(thetas[i:i+1,0], thetas[i:i+1,1]), arrowprops=dict(arrowstyle="->"))
             plt.draw()
             fig.canvas.draw()   
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             img.append(image)
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-        imageio.mimsave('./line_fit.gif', img, fps=1)
-
-        if __name__ == '__main__':
-            # FuncAnimation will call the 'update' function for each frame; here
-            # animating over 10 frames, with an interval of 200ms between frames.
-            anim = FuncAnimation(fig, update, frames=np.arange(0, 10), interval=200)
-            if len(sys.argv) > 1 and sys.argv[1] == 'save':
-                anim.save('line.gif', dpi=80, writer='imagemagick')
-            else:
-                # plt.show() will just loop the animation forever.
-                plt.show()
-                
-
-    def plot_contour(self, X, y, t_0, t_1):
-        """
-        Plots the RSS as a contour plot. A contour plot is obtained by varying
-        theta_0 and theta_1 over a range. Indicates the RSS based on given value of t_0 and t_1, and the
-        direction of gradient steps. Uses self.coef_ to calculate RSS.
-
-        :param X: pd.DataFrame with rows as samples and columns as features (shape: (n_samples, n_features))
-        :param y: pd.Series with rows corresponding to output (shape: (n_samples,))
-        :param t_0: Value of theta_0 for which to plot the fit
-        :param t_1: Value of theta_1 for which to plot the fit
-
-        :return matplotlib figure plotting the contour
-        """
-
-        pass
+        kwargs_write = {'fps':10.0, 'quantizer':'nq'}
+        imageio.mimsave('./contour_plot_'+str(self.fit)+'.gif', img, fps=2)
