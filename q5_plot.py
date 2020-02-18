@@ -3,21 +3,28 @@ import matplotlib.pyplot as plt
 from preprocessing.polynomial_features import PolynomialFeatures
 import pandas as pd
 from linearRegression.linearRegression import LinearRegression
-from metrics import *
+import math
 
 x = np.array([i*np.pi/180 for i in range(60,300,4)])
 np.random.seed(10)  
 y = 4*x + 7 + np.random.normal(0,3,len(x))
 y = pd.Series(y)
-
-for i in range(1,2):
+mag = []
+degree = []
+for i in range(1,11):
     poly = PolynomialFeatures(degree=i)
     X = poly.transform(x.copy())
-    # print(X[1].loc[23])
     LR = LinearRegression(fit_intercept=False)
-    LR.fit_non_vectorised(X, y, batch_size=6) # here you can use fit_non_vectorised / fit_autograd methods
-    y_hat = LR.predict(X)
-    # LR.plot_surface(np.array(X[1]),y)
-    
-    LR.plot_line_fit(np.array(X[1]), np.array(y), 3,4)
-    print("--------------------------------------------------")
+    LR.fit_non_vectorised(X, y, n_iter=5 ,batch_size=60)
+    coef = LR.coef_
+    mag.append(np.linalg.norm(coef))
+    degree.append(i)
+mag = np.array(mag)
+degree = np.array(degree)
+plt.plot(degree, mag)
+plt.yscale('log')
+plt.xlabel('Degree')
+plt.ylabel('Magnitude of theta')
+plt.title('Magnitude of theta (log scale) vs Degree')
+plt.show()
+
