@@ -15,7 +15,7 @@ class LinearRegression():
         '''
         self.fit_intercept = fit_intercept
         self.coef_ = None #Replace with numpy array or pandas series of coefficients learned using using the fit methods
-
+        self.fit = None
     
     def fit_non_vectorised(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
@@ -272,7 +272,7 @@ class LinearRegression():
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             img.append(image)
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
         imageio.mimsave('./plot_surface_'+str(self.fit)+'.gif', img, fps=2)
 
     def plot_line_fit(self, X, y, t_0, t_1):
@@ -306,7 +306,7 @@ class LinearRegression():
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             img.append(image)
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
         imageio.mimsave('./line_fit_'+str(self.fit)+'.gif', img, fps=2)
 
     def plot_contour(self, X, y, t_0, t_1):
@@ -361,5 +361,5 @@ class LinearRegression():
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             img.append(image)
-        kwargs_write = {'fps':10.0, 'quantizer':'nq'}
+        # kwargs_write = {'fps':10.0, 'quantizer':'nq'}
         imageio.mimsave('./contour_plot_'+str(self.fit)+'.gif', img, fps=2)
