@@ -1,8 +1,10 @@
 # ES654-2020 Assignment 3
 
-*Your Name* - *Your Roll Number*
+*Rama Krishna* - *17110094*
 
 ------
 
-> Write the answers for the subjective questions here
+- For degree = 1, 3, 5, 7, 9, plot magnitude of theta v/s degree for varying N, where N is the size of the data set.
+
+![plot](Images\theta-vs-degreeN.png)
 
