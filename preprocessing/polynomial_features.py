@@ -39,15 +39,3 @@ class PolynomialFeatures():
             x.loc[i] = [X[i]**j for j in col]            
         self.feature = x
         return self.feature
-    
-        
-        
-        
-        
-        
-        
-        
-        
-    
-                
-                
