@@ -6,7 +6,6 @@ from linearRegression.linearRegression import LinearRegression
 import copy
 
 mag = []
-N = [i for i in range(60,300*j,4)]
 degree = []
 for j in range(1,7):
     the = []
@@ -23,7 +22,6 @@ for j in range(1,7):
         the.append(np.linalg.norm(coef))
     mag.append(the)
 mag = np.array(mag)
-N = np.array(N)
 degree = np.array([i for i in range(1,10,2)])
 N = [(300*i-60)//4 for i in range(1,7)]
 fig = plt.figure()

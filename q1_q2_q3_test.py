@@ -15,10 +15,10 @@ y = pd.Series(np.random.randn(N))
 print("===============================================")
 print("For fit_vectorised")
 print("===============================================")
-for lr_type in ["constant", "inverse"]:
+for lr_type in ["constant"]:
     for fit_intercept in [True, False]:
         LR = LinearRegression(fit_intercept=fit_intercept)
-        LR.fit_vectorised(X, y, batch_size=3, lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
+        LR.fit_vectorised(X, y, batch_size=30, lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
         y_hat = LR.predict(X)
         print("--------------------------------------------------")
         print("fit_intercept : "+str(fit_intercept)+" && lr_type : "+str(lr_type))
@@ -28,10 +28,10 @@ for lr_type in ["constant", "inverse"]:
 print("===============================================")
 print("For fit_non_vectorised")
 print("===============================================")
-for lr_type in ["constant", "inverse"]:
+for lr_type in ["constant"]:
     for fit_intercept in [True, False]:
         LR = LinearRegression(fit_intercept=fit_intercept)
-        LR.fit_non_vectorised(X, y, batch_size=3,lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
+        LR.fit_non_vectorised(X, y, batch_size=30,lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
         y_hat = LR.predict(X)
         print("--------------------------------------------------")
         print("fit_intercept : "+str(fit_intercept)+" && lr_type : "+str(lr_type))
@@ -42,10 +42,10 @@ for lr_type in ["constant", "inverse"]:
 print("===============================================")
 print("For fit_autograd")
 print("===============================================")
-for lr_type in ["constant", "inverse"]:
+for lr_type in ["constant"]:
     for fit_intercept in [True, False]:
         LR = LinearRegression(fit_intercept=fit_intercept)
-        LR.fit_autograd(X, y, batch_size=3,lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
+        LR.fit_autograd(X, y, batch_size=30,lr_type=lr_type) # here you can use fit_non_vectorised / fit_autograd methods
         y_hat = LR.predict(X)
         print("--------------------------------------------------")
         print("fit_intercept : "+str(fit_intercept)+" && lr_type : "+str(lr_type))

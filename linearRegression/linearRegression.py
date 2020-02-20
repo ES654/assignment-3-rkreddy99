@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,56 +34,36 @@ class LinearRegression():
         :return None
         '''
         assert (batch_size <= len(X.index))
+        rows = X.shape[0]
         Xd = X.copy()
-        rows = len(Xd.index)
         if(self.fit_intercept == True):
             Xd.insert(0, "Intercept", pd.Series([1]*rows))
         col = list(Xd.columns)
         yd = y.copy()
-
-        theta = np.array([1.0]*len(list(Xd.columns)))
-        r = 0
-        # self.thetas = []
+        theta = np.array([1 for i in range(len(col))])
         coef = []
+        coef.append(list(theta))
+        ind = [i for i in range(0,rows,batch_size)]
+        ind.append(rows)
+        Xd.columns = [i for i in range(len(col))]
         for i in range(n_iter):
-            # self.thetas.append(theta)
-            # print(theta)
-            coef.append(list(theta))
-            # print(coef)
-            xx = pd.DataFrame(columns=col)
-            yy = pd.Series([])
-            for j in range(batch_size):
-                xx.loc[j] = Xd.loc[r%rows]
-                yy[j] = yd[r%rows]
-                r += 1
             if (lr_type == 'inverse') and i!=0:
                 lr = lr*i/(i+1)
-            gradient = []
-            for ii in range(len(col)):
-                cols = [t for t in range(len(col))]
-                xx.columns = cols
-                der = 0
-                # print(xx)
-                for jj in range(batch_size):
-                    der += 2*(yy[jj] - (np.array(xx.loc[jj]) @ np.array(theta)))*(-1*xx.loc[jj][ii]) #(self.error(xx.loc[jj], yy[jj], theta))
-                der = der/batch_size
-                gradient.append(der)
-            for k in range(len(theta)):
-                theta[k] -= (lr * gradient[k])
-            # print(gradient)
-        # print(self.thetas)
-        # print(coef)
+            for j in range(len(ind)-1):
+                xx = Xd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                yy = yd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                grad=[]
+                for ii in range(len(col)):
+                    der = 0
+                    for jj in range(xx.shape[0]):
+                        der += 2*(yy[jj] - (xx.loc[jj] @ theta))*(-1*xx.loc[jj][ii]) #(error(xx.loc[jj], yy[jj], theta))
+                    der = der/batch_size
+                    grad.append(der)
+                theta = theta - lr*np.array(grad)
+                coef.append(list(theta))
         self.thetas = coef
-        # print(self.thetas)
         self.coef_ = pd.Series(theta)
         return self.coef_
-
-    # def error(self, x_single, y_single, theta):
-    #     y_hat = 0
-    #     for i in range(x_single.size):
-    #         y_hat += x_single[i] * theta[i]
-    #     return (y_single - y_hat)
-
 
     def fit_vectorised(self, X, y,batch_size, n_iter=100, lr=0.01, lr_type='constant'):
         '''
@@ -102,29 +83,28 @@ class LinearRegression():
         assert (batch_size <= len(X.index))
         Xd = X.copy()
         yd = y.copy()
-        rows = len(Xd.index)
+        # a = time.time()
+        rows = X.shape[0]
         if(self.fit_intercept == True):
             Xd.insert(0, "Intercept", pd.Series([1]*rows))
         col = list(Xd.columns)
         theta = np.array([1.0]*len(col))
-        r = 0
         coef = []
+        coef.append(list(theta))
+        ind = [i for i in range(0,rows,batch_size)]
+        ind.append(rows)
         for i in range(n_iter):
-            coef.append(list(theta))
-            xx = pd.DataFrame(columns=list(col))
-            yy = pd.Series([])
-            for j in range(batch_size):
-                xx.loc[j] = Xd.loc[r%rows]
-                yy[j] = yd[r%rows]
-                r += 1
             if (lr_type == 'inverse') and i!=0:
                 lr = lr*i/(i+1)
-            Xn = xx.to_numpy()
-            Xt = Xn.transpose()
-            yn = yy.to_numpy()
-            theta = theta - (Xt @ ((Xn @ theta) - yn))*(lr/batch_size)
+            for j in range(len(ind)-1):
+                xx = Xd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                yy = yd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                Xn = xx.to_numpy()
+                Xt = Xn.T
+                yn = yy.to_numpy()
+                theta = theta - (Xt @ ((Xn @ theta) - yn))*(2*lr/batch_size)
+                coef.append(list(theta))
         self.thetas = coef
-        # print(coef)
         self.coef_ = pd.Series(theta)
     
     def fit_autograd(self, X, y, batch_size, n_iter=100, lr=0.01, lr_type='constant'):
@@ -150,24 +130,23 @@ class LinearRegression():
         if(self.fit_intercept==True):
             Xd.insert(0,"Intercept",pd.Series([1]*rows))
         col = list(Xd.columns)
-        theta = np.array([1.0]*len(col))
-        r = 0
+        theta = np.array([1.0 for i in range(len(col))])
         coef = []
+        coef.append(list(theta))
+        ind = [i for i in range(0,rows,batch_size)]
+        ind.append(rows)
         for i in range(n_iter):
-            coef.append(list(theta))
-            xx = pd.DataFrame(columns=col)
-            yy = pd.Series([])
-            for j in range(batch_size):
-                xx.loc[j] = list(Xd.loc[r%rows])
-                yy[j] = yd[r%len(Xd.index)]
-                r += 1
-            self.xd = xx.to_numpy()
-            self.ydd = yy.to_numpy()
             if (lr_type == 'inverse') and i!=0:
                 lr = lr*i/(i+1)
-            gradd = grad(self.error)
-            gradient = gradd(theta)
-            theta -= gradient * lr
+            for j in range(len(ind)-1):
+                xx = Xd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                yy = yd.loc[ind[j]:ind[j+1]-1].reset_index(drop=True)
+                self.xd = xx.to_numpy()
+                self.ydd = yy.to_numpy()                
+                gradd = grad(self.error)
+                gradient = gradd(theta)
+                theta -= gradient * lr
+                coef.append(list(theta))
         self.thetas = coef
         self.coef_ = pd.Series(theta)
             
@@ -188,12 +167,15 @@ class LinearRegression():
 
         :return None
         '''
+        # p = time.time()
         X = X.to_numpy()
         if self.fit_intercept:
             a = np.ones((X.shape[0],1))
             X = np.concatenate((a,X), axis=1)
         inv = np.linalg.pinv(X.T @ X)
         self.coef_ = inv @ X.T @ y
+        # q = time.time()
+        # print(q-p)
         return self.coef_
 
     def predict(self, X):

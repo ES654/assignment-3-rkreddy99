@@ -1,9 +1,14 @@
 # ES654-2020 Assignment 3
 
-*Your Name* - *Your Roll Number*
+*Rama Krishna* - *17110094*
 
 ------
 
-> Write the answers for the subjective questions here
+Fit_non_vectorised
 
 
+- The results on random data with N=30 and P=5, 
+
+![q1results](Images/Q2result.PNG)
+
+- Code for Fit_non_vectorised is in `q1_q2_q3_test.py`
