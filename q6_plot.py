@@ -17,7 +17,7 @@ for j in range(1,7):
         poly = PolynomialFeatures(degree=i)
         X = poly.transform(x)
         LR = copy.deepcopy(LinearRegression(fit_intercept=False))
-        LR.fit_non_vectorised(X, y, n_iter=5 ,batch_size=60*j)
+        LR.fit_non_vectorised(X, y, n_iter=5 ,batch_size=X.shape[0])
         coef = LR.coef_
         the.append(np.linalg.norm(coef))
     mag.append(the)
